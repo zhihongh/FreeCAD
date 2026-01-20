@@ -39,6 +39,6 @@ This tool helps you process and organize your chat history from services like Ch
     - `--ai`: Enable AI summarization (requires API key). Omit this flag for simple text extraction.
     - `--output-dir`: Where to save the Markdown files (default: `analyzed_chats`).
 
-3.  **Use in Cursor "Ask" Mode:**
-    - You can now drag and drop the generated Markdown files (or the whole folder) into Cursor's chat or reference them using `@folder` to ask questions about your past conversations!
-    - This allows you to "converse" with your chat history.
+3.  **Use in "Ask" Mode / Conversation:**
+    - **In Cursor:** Reference the output folder (e.g., `@my_chat_summaries`) to ask questions about your past conversations.
+    - **On Mobile:** You can access these Markdown summaries to have a conversation with your data on your phone using any LLM interface that supports file context.
