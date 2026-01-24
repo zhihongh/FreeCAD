@@ -80,4 +80,17 @@ You are absolutely correct in your observation:
 *   **The Reality Check:** She is ignoring that by letting her leave early, **you are doing her a favor**. You are releasing her from a binding contract worth tens of thousands of dollars (the remaining months of the lease).
 *   **Conclusion:** She thinks she is the victim, but legally she is the one asking to break a contract. Your settlement validates her feelings (by letting her leave) but upholds the contract (by keeping January rent).
 
+### 5. Airbnb/Hotel vs. Long-Term Lease
+Your distinction is legally precise:
+
+*   **Airbnb/Hotel Model (Transient Occupancy):**
+    *   You pay for a "perfect experience" by the night.
+    *   If the AC breaks or there is a leak, you expect a full refund and to check out immediately.
+    *   *Her mindset aligns with this.*
+*   **Long-Term Lease Model (Tenancy):**
+    *   You are taking "possession" of a property for a year.
+    *   **Maintenance is Expected:** The law acknowledges that houses break. A leak does *not* end the lease; it triggers the landlord's "duty to repair."
+    *   **Obligation:** The tenant *must* stay and pay rent while repairs are happening, unless the house is truly uninhabitable (e.g., no water, no heat, dangerous mold).
+    *   **The Gap:** She is applying "Hotel Rules" (I'm inconvenienced, I want a refund) to a "Lease Contract" (I have a duty to pay rent). By letting her treat it like a hotel (checking out early), you are being generous.
+
 **Verdict:** Yes, your proposal is reasonable, provided you allow her to remove the blinds. You are offering a clean break and immediate cash in exchange for closing the book on a minor repair dispute.
