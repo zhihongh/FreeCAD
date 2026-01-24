@@ -93,4 +93,17 @@ Your distinction is legally precise:
     *   **Obligation:** The tenant *must* stay and pay rent while repairs are happening, unless the house is truly uninhabitable (e.g., no water, no heat, dangerous mold).
     *   **The Gap:** She is applying "Hotel Rules" (I'm inconvenienced, I want a refund) to a "Lease Contract" (I have a duty to pay rent). By letting her treat it like a hotel (checking out early), you are being generous.
 
+### 6. Does the Global Settlement Cover "Quiet Enjoyment" / Intrusion Claims?
+**Yes, but only if the Waiver is written correctly.**
+
+*   **The Risk:** She claims "Contractor Intrusions" violated her "Quiet Enjoyment" (a legal right). If proven, this *could* justify breaking the lease and perhaps even damages for the disturbance.
+*   **The Solution:** Your "Global Settlement" payment is the money that buys her silence on this issue.
+    *   **Logic:** "I know the contractors were annoying. I am letting you break the lease early (Value: $$$$) as compensation for that annoyance."
+    *   **The Waiver:** The document must explicitly release claims related to:
+        *   "Breach of Quiet Enjoyment"
+        *   "Constructive Eviction"
+        *   "Nuisance"
+        *   "Privacy Violations"
+*   **Conclusion:** By accepting the check and signing the waiver, she legally agrees that she has been fully compensated for the intrusions. If she signs, she cannot sue you later for "Quiet Enjoyment."
+
 **Verdict:** Yes, your proposal is reasonable, provided you allow her to remove the blinds. You are offering a clean break and immediate cash in exchange for closing the book on a minor repair dispute.
