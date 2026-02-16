@@ -210,12 +210,19 @@ def generate_weekly_events_section(styles):
     elements.append(Paragraph(f"<b>📅 {week_str}</b>", styles["BodyCN"]))
     elements.append(Spacer(1, 4))
 
+    from datetime import timedelta
+    monday = today - timedelta(days=today.weekday())
+    def date_label(offset):
+        d = monday + timedelta(days=offset)
+        weekdays = ["周一", "周二", "周三", "周四", "周五"]
+        return f"{weekdays[offset]} ({d.strftime('%m/%d')})"
+
     events = [
-        ["周一", "总统日 - 美股休市", "——"],
-        ["周二", "纽约联储制造业指数; FOMC会议纪要预期", "关注制造业复苏信号"],
-        ["周三", "FOMC 1月会议纪要公布 (2:00PM ET)", "关注利率路径讨论、缩表节奏"],
-        ["周四", "初请失业金人数; 费城联储制造业指数; 成屋销售", "就业市场韧性评估"],
-        ["周五", "标普全球PMI初值(制造业+服务业); 密歇根消费者信心终值", "经济软着陆预期验证"],
+        [date_label(0), "总统日 - 美股休市", "——"],
+        [date_label(1), "纽约联储制造业指数; FOMC会议纪要预期", "关注制造业复苏信号"],
+        [date_label(2), "FOMC 1月会议纪要公布 (2:00PM ET)", "关注利率路径讨论、缩表节奏"],
+        [date_label(3), "初请失业金人数; 费城联储制造业指数; 成屋销售", "就业市场韧性评估"],
+        [date_label(4), "标普全球PMI初值(制造业+服务业); 密歇根消费者信心终值", "经济软着陆预期验证"],
     ]
 
     econ_table = [
@@ -305,7 +312,7 @@ def generate_summary_section(data, styles):
     elements.append(Paragraph(summary_text, styles["BodyCN"]))
     elements.append(Spacer(1, 4))
 
-    # Key news bullets
+    # Dynamic key news based on actual data
     news_bullets = [
         "• AI投资热潮持续：各大科技巨头持续加大AI基础设施投入，数据中心需求旺盛",
         "• 美联储政策：市场密切关注FOMC会议纪要，预期今年降息空间有限",
@@ -313,6 +320,15 @@ def generate_summary_section(data, styles):
         "• 财报季延续：本周NVDA、WMT等重磅财报将决定近期市场方向",
         "• 宏观数据：关注制造业PMI、就业数据对经济软着陆预期的影响",
     ]
+
+    # Add data-driven insights
+    gainers = data.get("gainers", [])
+    if gainers:
+        top_mover = gainers[0]
+        news_bullets.append(
+            f"• 今日明星股: {top_mover['symbol']} 大涨 {fmt_pct(top_mover.get('change_pct', 0))}，"
+            f"收于 {fmt_price(top_mover.get('price', 0))}"
+        )
     for b in news_bullets:
         elements.append(Paragraph(b, styles["BulletCN"]))
 
@@ -676,14 +692,19 @@ def generate_hot_sectors_section(data, styles):
         elements.append(t)
         elements.append(Spacer(1, 6))
 
-    # Sector rotation summary
+    # Data-driven sector rotation summary
     elements.append(Paragraph("<b>板块轮动总结:</b>", styles["SubSectionTitle"]))
-    rotation_notes = [
-        "• AI/半导体: 核心主线，NVDA财报前市场期待高涨，关注指引是否超预期",
-        "• 存储: HBM需求确定性强，MU作为龙头估值合理，周期上行趋势明确",
-        "• 服务器: 数据中心Capex增长受益，但个股分化加剧，SMCI风险较大",
-        "• 电力: AI基建的'卖水人'逻辑，核能概念持续受资金追捧",
-    ]
+    rotation_notes = []
+    for sector, stocks in hot_sectors.items():
+        if not stocks:
+            continue
+        avg_chg = sum(s.get("change_pct", 0) for s in stocks) / len(stocks) if stocks else 0
+        top_stock = max(stocks, key=lambda x: x.get("change_pct", 0))
+        direction = "偏强 📈" if avg_chg > 0.5 else "偏弱 📉" if avg_chg < -0.5 else "震荡 ↔️"
+        rotation_notes.append(
+            f"• {sector}: 板块均涨幅 {avg_chg:+.2f}% {direction}，"
+            f"领涨 {top_stock['symbol']}({fmt_pct(top_stock.get('change_pct', 0))})"
+        )
     for n in rotation_notes:
         elements.append(Paragraph(n, styles["BulletCN"]))
 

@@ -51,7 +51,7 @@ HOT_SECTOR_STOCKS = {
     "电力设备/能源": ["VST", "CEG", "NRG", "NEE", "FSLR"],
     "云计算/软件": ["MSFT", "AMZN", "GOOGL", "META", "ORCL", "CRM", "NOW", "SNOW"],
     "消费/零售": ["LULU", "NKE", "COST", "WMT", "TGT"],
-    "金融科技": ["UPST", "SQ", "PYPL", "COIN", "AFRM"],
+    "金融科技": ["UPST", "PYPL", "COIN", "AFRM", "SOFI", "HOOD"],
     "电动车/新能源": ["TSLA", "RIVN", "LCID", "NIO", "LI"],
 }
 
@@ -290,7 +290,7 @@ def scan_volume_surge_stocks():
     all_stocks.update(TRACKED_STOCKS)
     extra = ["PLTR", "IONQ", "RGTI", "MSTR", "SHOP", "PANW", "SNOW", "DDOG",
              "NET", "ZS", "CRWD", "FTNT", "UBER", "ABNB", "DASH", "RBLX",
-             "U", "TTD", "ROKU", "SNAP", "PINS", "SQ", "SOFI", "HOOD",
+             "U", "TTD", "ROKU", "SNAP", "PINS", "SOFI", "HOOD",
              "MARA", "RIOT", "CLSK", "CIFR", "HUT", "BITF"]
     all_stocks.update(extra)
     all_stocks = list(all_stocks)
