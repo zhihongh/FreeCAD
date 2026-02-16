@@ -1,182 +1,315 @@
-# Discord 频道消息下载器
+# 微信 + Discord 内容下载器 & 定时任务
 
-自动下载 Discord 频道中的消息，保存为 Markdown 和/或 JSON 文件。支持定时运行，方便定期归档 Discord 上的文章和讨论内容。
+自动化下载微信（通过你的 exe 工具）和 Discord 频道中的消息，保存为 Markdown / JSON 文件，支持 Windows 定时任务自动运行。
 
-## 关于 Cursor / Cloud Agent 的说明
+---
 
-**重要提示：** Cursor 的 Cloud Agent 运行在远程云端服务器上，**无法**直接在你的本地电脑上执行 exe 文件或访问本地应用程序。
+## 核心问题解答
 
-但是，你可以：
+### Q: Cursor 能帮我直接运行电脑上的 exe 文件吗？
 
-1. **使用本工具在本地电脑上运行** — 将此工具下载到本地，配合 Windows 任务计划程序或 Linux cron 定时执行
-2. **在 Cursor 中编辑和调试代码** — 使用 Cursor 作为编辑器来修改和完善脚本
-3. **在本地终端中手动运行** — 直接在本地命令行中执行 Python 脚本
+**简短回答：不能。** Cursor 的 Cloud Agent 运行在远程云端服务器上，无法直接访问你本地电脑的文件或执行本地程序。
 
-## 工作原理
+**但 Cursor 可以帮你：**
+- 编写自动化脚本（就像本工具）
+- 配置定时任务
+- 你只需在**本地电脑**上运行一次设置，之后一切自动执行
 
-本工具通过 Discord Bot API 来读取频道消息（不需要运行 exe 文件）：
+### 解决方案：本地 Python 脚本 + Windows 定时任务
 
 ```
-Discord 服务器 → Discord Bot API → 本脚本 → Markdown/JSON 文件
+你的电脑 (本地运行)
+  │
+  ├─ task_runner.py          ← 统一调度器
+  │    │
+  │    ├─ 1. 运行 wechat_downloader.exe   ← 你的微信下载工具
+  │    │
+  │    └─ 2. 运行 discord_downloader.py    ← Discord 消息下载
+  │
+  └─ Windows 任务计划程序 ← 定时触发（如每6小时）
 ```
 
-## 安装步骤
+---
 
-### 1. 安装 Python 依赖
+## 快速开始（5 分钟设置）
+
+### 第 1 步：安装 Python 依赖
 
 ```bash
 cd tools/discord_downloader
 pip install -r requirements.txt
 ```
 
-### 2. 创建 Discord Bot
+### 第 2 步：配置你的 exe 路径
 
-1. 打开 [Discord Developer Portal](https://discord.com/developers/applications)
-2. 点击 "New Application"，输入名称（如 "消息下载器"）
-3. 进入左侧 **Bot** 页面
-4. 点击 "Reset Token" 获取 Bot Token（**请妥善保管，不要泄露**）
-5. 在 "Privileged Gateway Intents" 下启用 **MESSAGE CONTENT INTENT**
-6. 进入左侧 **OAuth2 → URL Generator**
-   - Scopes: 选择 `bot`
-   - Bot Permissions: 选择 `Read Message History`、`View Channels`
-7. 复制生成的 URL，在浏览器中打开，将 Bot 邀请到你的 Discord 服务器
+编辑 `tasks_config.json`，把微信下载 exe 的路径改成你自己的：
 
-### 3. 配置 Token
-
-复制 `.env.example` 为 `.env`，填入你的 Bot Token：
-
-```bash
-cp .env.example .env
-# 编辑 .env 文件，将 your_bot_token_here 替换为实际的 token
+```json
+{
+  "tasks": [
+    {
+      "name": "wechat",
+      "enabled": true,
+      "description": "下载微信内容",
+      "type": "exe",
+      "path": "C:\\Users\\你的用户名\\tools\\wechat_downloader.exe",
+      "args": [],
+      "working_directory": "C:\\Users\\你的用户名\\tools\\",
+      "timeout_seconds": 300,
+      "wait_after_seconds": 5
+    },
+    {
+      "name": "discord",
+      "enabled": true,
+      "description": "下载 Discord 频道消息",
+      "type": "python",
+      "script": "discord_downloader.py",
+      "args": ["--last-run"],
+      "timeout_seconds": 600,
+      "wait_after_seconds": 0
+    }
+  ]
+}
 ```
 
-### 4. 配置频道（可选）
+**关键字段说明：**
+- `path`：你的 exe 文件完整路径（注意用 `\\` 双反斜杠）
+- `args`：传给 exe 的参数列表，如 `["--output", "C:\\data"]`
+- `working_directory`：exe 运行时的工作目录
+- `timeout_seconds`：超时时间（秒），防止 exe 卡住
+- `enabled`：设为 `false` 可跳过该任务
 
-编辑 `downloader_config.json`：
+### 第 3 步：设置 Discord Bot（如需下载 Discord）
+
+1. 打开 [Discord Developer Portal](https://discord.com/developers/applications)
+2. 点击 "New Application" → 输入名称
+3. 进入 **Bot** 页面 → 点击 "Reset Token" → 复制 Token
+4. 启用 **MESSAGE CONTENT INTENT**（在 Privileged Gateway Intents 下）
+5. 进入 **OAuth2 → URL Generator**
+   - Scopes: 选 `bot`
+   - Bot Permissions: 选 `Read Message History`、`View Channels`
+6. 复制生成的 URL，浏览器打开，邀请 Bot 到你的服务器
+
+配置 Token：
+
+```bash
+# 复制模板
+copy .env.example .env
+
+# 编辑 .env，填入你的 Bot Token
+# DISCORD_BOT_TOKEN=你的token
+```
+
+### 第 4 步：测试运行
+
+```bash
+# 预览会执行什么（不实际运行）
+python task_runner.py --dry-run
+
+# 只测试微信下载
+python task_runner.py --task wechat
+
+# 只测试 Discord 下载
+python task_runner.py --task discord
+
+# 运行所有任务
+python task_runner.py
+```
+
+### 第 5 步：设置定时任务
+
+**双击 `setup_scheduled_tasks.bat`**（以管理员身份运行），选择运行频率即可。
+
+或者手动设置：
+1. 按 `Win + R` → 输入 `taskschd.msc` → 回车
+2. 右侧点击 "创建基本任务"
+3. 名称：`WeChatDiscordDownloader`
+4. 触发器：每天 / 每小时 等
+5. 操作：启动程序 → 浏览选择 `run_all_tasks.bat`
+6. 完成
+
+---
+
+## 详细使用说明
+
+### task_runner.py - 统一任务调度器
+
+核心脚本，可以依次运行多个任务（exe、Python 脚本、shell 命令）。
+
+```bash
+python task_runner.py                          # 运行所有任务
+python task_runner.py --dry-run                # 预览模式
+python task_runner.py --task wechat            # 只运行微信任务
+python task_runner.py --task discord            # 只运行 Discord 任务
+python task_runner.py --config my_config.json  # 使用自定义配置
+```
+
+**支持的任务类型：**
+
+| 类型 | 说明 | 配置字段 |
+|------|------|----------|
+| `exe` | 运行 Windows exe / bat / cmd 文件 | `path`, `args`, `working_directory` |
+| `python` | 运行 Python 脚本 | `script`, `args` |
+| `shell` | 运行 shell 命令 | `command`, `working_directory` |
+
+### discord_downloader.py - Discord 消息下载
+
+```bash
+python discord_downloader.py                        # 下载所有频道
+python discord_downloader.py --channel 123456789    # 指定频道
+python discord_downloader.py --since 2025-01-01     # 指定起始日期
+python discord_downloader.py --last-run             # 只下载新消息
+python discord_downloader.py --list-channels        # 列出可用频道
+```
+
+配置频道 ID：编辑 `downloader_config.json`
 
 ```json
 {
   "output_dir": "discord_exports",
   "format": "both",
-  "channels": [123456789012345678, 987654321098765432],
-  "max_messages_per_run": 5000,
-  "include_attachments": true,
-  "include_embeds": true,
-  "include_reactions": true
+  "channels": [123456789012345678],
+  "max_messages_per_run": 5000
 }
 ```
 
-- `channels`：要下载的频道 ID 列表。留空 `[]` 则下载 Bot 可访问的所有频道
-- `format`：输出格式，可选 `"markdown"`、`"json"` 或 `"both"`
-- `output_dir`：输出目录
+**获取频道 ID：** Discord 设置 → 高级 → 开启"开发者模式" → 右键频道 → "复制频道 ID"
 
-**如何获取频道 ID：** 在 Discord 中开启开发者模式（设置 → 高级 → 开发者模式），然后右键点击频道，选择"复制频道 ID"。
+---
 
-## 使用方法
+## 输出内容
 
-### 基本用法
-
-```bash
-# 下载所有可访问频道的消息
-python discord_downloader.py
-
-# 下载指定频道
-python discord_downloader.py --channel 123456789012345678
-
-# 下载多个指定频道
-python discord_downloader.py --channel 111111111 --channel 222222222
-
-# 只下载某个日期之后的消息
-python discord_downloader.py --since 2025-01-01
-
-# 只下载上次运行后的新消息（推荐用于定时任务）
-python discord_downloader.py --last-run
-
-# 列出所有可访问的频道
-python discord_downloader.py --list-channels
-```
-
-### 输出示例
-
-下载的消息会保存在 `discord_exports/` 目录下：
+### 下载的文件
 
 ```
 discord_exports/
-├── general_20250216_080000.md      # Markdown 格式
-├── general_20250216_080000.json    # JSON 格式
-├── announcements_20250216_080000.md
-└── announcements_20250216_080000.json
+├── general_20260216_080000.md        # Markdown 格式
+├── general_20260216_080000.json      # JSON 格式
+├── announcements_20260216_080000.md
+└── announcements_20260216_080000.json
 ```
 
-## 定时下载设置
+### 运行日志
 
-### Windows：使用任务计划程序
-
-**方法一：自动创建（推荐）**
-
-以管理员身份运行 `setup_task_scheduler.bat`，会自动创建每 6 小时执行一次的定时任务。
-
-**方法二：手动创建**
-
-1. 按 `Win+R`，输入 `taskschd.msc` 打开任务计划程序
-2. 点击右侧 "创建基本任务"
-3. 设置名称："Discord消息下载"
-4. 触发器：选择 "每天" 或自定义间隔
-5. 操作：选择 "启动程序"，浏览选择 `run_download.bat`
-6. 勾选 "当用户未登录时也运行"
-7. 完成
-
-### Linux / macOS：使用 cron
-
-```bash
-# 使脚本可执行
-chmod +x run_download.sh
-
-# 编辑 crontab
-crontab -e
-
-# 添加以下行（每6小时运行一次）：
-0 */6 * * * /absolute/path/to/discord_downloader/run_download.sh
-
-# 或者每天早上8点运行：
-0 8 * * * /absolute/path/to/discord_downloader/run_download.sh
 ```
+logs/
+├── task_runner_20260216.log             # 文字日志
+├── run_20260216_080000.json             # JSON 运行报告
+└── run_20260216_140000.json
+```
+
+---
+
+## 高级配置示例
+
+### 只运行微信下载（不用 Discord）
+
+```json
+{
+  "tasks": [
+    {
+      "name": "wechat",
+      "enabled": true,
+      "type": "exe",
+      "path": "C:\\tools\\wechat_downloader.exe",
+      "args": ["--output", "C:\\data\\wechat"],
+      "timeout_seconds": 300
+    },
+    {
+      "name": "discord",
+      "enabled": false,
+      "type": "python",
+      "script": "discord_downloader.py",
+      "args": ["--last-run"]
+    }
+  ]
+}
+```
+
+### 添加更多自定义任务
+
+```json
+{
+  "tasks": [
+    {
+      "name": "wechat",
+      "enabled": true,
+      "type": "exe",
+      "path": "C:\\tools\\wechat_downloader.exe",
+      "timeout_seconds": 300,
+      "wait_after_seconds": 5
+    },
+    {
+      "name": "backup",
+      "enabled": true,
+      "description": "备份下载的内容",
+      "type": "shell",
+      "command": "xcopy /s /y discord_exports\\ D:\\backup\\discord\\",
+      "timeout_seconds": 120
+    },
+    {
+      "name": "discord",
+      "enabled": true,
+      "type": "python",
+      "script": "discord_downloader.py",
+      "args": ["--last-run"],
+      "timeout_seconds": 600
+    }
+  ],
+  "settings": {
+    "stop_on_error": false
+  }
+}
+```
+
+---
 
 ## 常见问题
 
-### Q: Cursor 能直接帮我运行本地的 exe 文件吗？
+### Q: 我只想用微信 exe，不需要 Discord 下载
 
-**A:** 不能。Cursor 的 AI 助手（包括 Cloud Agent）运行在云端服务器上，无法直接访问或执行你电脑上的程序。但你可以：
-- 让 Cursor 帮你**编写**自动化脚本（就像本工具）
-- 在本地终端中自己运行这些脚本
-- 使用系统自带的定时任务功能来自动执行
+把 `tasks_config.json` 中 Discord 任务的 `enabled` 改为 `false` 即可。
 
-### Q: 需要一直开着电脑吗？
+### Q: exe 运行时需要图形界面/窗口怎么办？
 
-**A:** 是的，定时任务需要电脑处于开机状态。如果你希望 24/7 运行，可以考虑：
-- 部署到云服务器（如 AWS、Azure、阿里云）
-- 使用 GitHub Actions 定时触发
-- 使用 Raspberry Pi 等低功耗设备
+如果你的 exe 需要 GUI 交互（比如弹窗确认），定时任务无法自动处理。需要确认你的 exe 支持命令行模式（静默模式），通常通过参数如 `--silent` 或 `--headless`。
+
+### Q: 任务运行失败怎么排查？
+
+1. 查看 `logs/` 目录下的日志文件
+2. 用 `python task_runner.py --dry-run` 检查配置
+3. 用 `python task_runner.py --task wechat` 单独测试
+4. 检查 exe 路径是否正确（注意 `\\` 双反斜杠）
+
+### Q: 可以在 Mac / Linux 上用吗？
+
+可以。`task_runner.py` 和 `discord_downloader.py` 是跨平台的 Python 脚本。只需把 exe 类型换成 shell 或 python，使用 cron 代替 Task Scheduler：
+
+```bash
+chmod +x run_download.sh
+crontab -e
+# 添加: 0 */6 * * * /path/to/run_download.sh
+```
 
 ### Q: Bot Token 安全吗？
 
-**A:** Bot Token 就像密码，请务必：
-- 不要将 `.env` 文件提交到 Git（已在 `.gitignore` 中排除）
+- `.env` 文件已被 `.gitignore` 排除，不会提交到 Git
 - 不要在公开场合分享 Token
-- 如果 Token 泄露，立即在 Discord Developer Portal 中重置
+- 如果泄露，在 Discord Developer Portal 立即重置
 
-### Q: 能下载私信（DM）吗？
-
-**A:** Bot 不能访问用户的私信。本工具仅支持下载 Bot 被邀请到的服务器中的频道消息。
+---
 
 ## 文件说明
 
 | 文件 | 说明 |
 |------|------|
-| `discord_downloader.py` | 主程序 |
-| `requirements.txt` | Python 依赖 |
-| `downloader_config.json` | 下载配置 |
-| `.env.example` | 环境变量模板 |
-| `run_download.bat` | Windows 定时任务脚本 |
-| `run_download.sh` | Linux/macOS 定时任务脚本 |
-| `setup_task_scheduler.bat` | Windows 任务计划自动创建脚本 |
+| `task_runner.py` | **统一任务调度器** — 依次运行 exe + Python 脚本 |
+| `tasks_config.json` | 任务配置（定义运行什么、怎么运行） |
+| `discord_downloader.py` | Discord 消息下载器 |
+| `downloader_config.json` | Discord 下载配置（频道、格式等） |
+| `requirements.txt` | Python 依赖列表 |
+| `.env.example` | 环境变量模板（Bot Token） |
+| `run_all_tasks.bat` | Windows 批处理 — 运行所有任务 |
+| `setup_scheduled_tasks.bat` | Windows 一键创建定时任务 |
+| `run_download.bat` | Windows 批处理 — 只运行 Discord 下载 |
+| `run_download.sh` | Linux/macOS 脚本 — 只运行 Discord 下载 |
