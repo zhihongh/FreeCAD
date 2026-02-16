@@ -1,0 +1,9 @@
+{
+  "output_dir": "discord_exports",
+  "format": "both",
+  "channels": [],
+  "max_messages_per_run": 5000,
+  "include_attachments": true,
+  "include_embeds": true,
+  "include_reactions": true
+}

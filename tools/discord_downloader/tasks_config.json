@@ -1,0 +1,30 @@
+{
+  "_comment": "任务运行器配置 / Task Runner Configuration — 请根据你的实际情况修改以下配置",
+  "tasks": [
+    {
+      "name": "wechat",
+      "enabled": true,
+      "description": "下载微信内容 (WeChat content downloader exe)",
+      "type": "exe",
+      "path": "C:\\your\\path\\to\\wechat_downloader.exe",
+      "args": [],
+      "working_directory": "C:\\your\\path\\to\\",
+      "timeout_seconds": 300,
+      "wait_after_seconds": 5
+    },
+    {
+      "name": "discord",
+      "enabled": true,
+      "description": "下载 Discord 频道消息",
+      "type": "python",
+      "script": "discord_downloader.py",
+      "args": ["--last-run"],
+      "timeout_seconds": 600,
+      "wait_after_seconds": 0
+    }
+  ],
+  "settings": {
+    "stop_on_error": false,
+    "notification_on_complete": false
+  }
+}
