@@ -1,0 +1,7 @@
+# Keep the reports directory but don't track generated files by default
+# (GitHub Actions will commit them if configured)
+__pycache__/
+*.pyc
+data/cron.log
+data/systemd*.log
+data/schedule_log.txt

@@ -1,0 +1,60 @@
+name: Daily Trading Report (每日交易报告)
+
+on:
+  schedule:
+    # Run at 1:45 PM PDT (20:45 UTC) Monday-Friday during DST
+    # Run at 1:45 PM PST (21:45 UTC) Monday-Friday during standard time
+    - cron: '45 20 * * 1-5'
+    - cron: '45 21 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Report date (YYYY-MM-DD, leave empty for today)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+        cache: 'pip'
+
+    - name: Install Chinese fonts
+      run: sudo apt-get install -y fonts-wqy-microhei
+
+    - name: Install Python dependencies
+      run: pip install -r daily_trading_report/requirements.txt
+
+    - name: Generate Trading Report
+      working-directory: daily_trading_report
+      run: |
+        if [ -n "${{ github.event.inputs.date }}" ]; then
+          python generate_report.py --date "${{ github.event.inputs.date }}" --save-data
+        else
+          python generate_report.py --save-data
+        fi
+
+    - name: Upload PDF Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: trading-report-${{ github.run_id }}
+        path: daily_trading_report/reports/*.pdf
+        retention-days: 90
+
+    - name: Commit report to repo
+      run: |
+        git config user.name "Trading Report Bot"
+        git config user.email "bot@trading-report.local"
+        git add daily_trading_report/reports/ daily_trading_report/data/
+        git diff --staged --quiet || git commit -m "📊 Daily trading report $(date +%Y-%m-%d)"
+        git push || echo "Push failed, report saved as artifact"
